@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  orchestrator:
+    build: ./Orchestrator
+    container_name: orchestrator
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  worker1:
+    build: ./Worker
+    environment:
+      - WORKER_ID=worker1
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+
+  worker2:
+    build: ./Worker
+    environment:
+      - WORKER_ID=worker2
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+
+  worker3:
+    build: ./Worker
+    environment:
+      - WORKER_ID=worker3
+    depends_on:
+      orchestrator:
+        condition: service_healthy
