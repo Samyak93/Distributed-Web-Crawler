@@ -5,11 +5,23 @@ services:
     container_name: orchestrator
     ports:
       - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+    depends_on:
+      - mongo
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 5s
       timeout: 3s
       retries: 5
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
 
   worker1:
     build: ./Worker
@@ -34,3 +46,6 @@ services:
 #    depends_on:
 #      orchestrator:
 #        condition: service_healthy
+
+volumes:
+  mongo_data:
