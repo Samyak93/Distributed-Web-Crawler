@@ -19,13 +19,13 @@ services:
       orchestrator:
         condition: service_healthy
 
-#  worker2:
-#    build: ./Worker
-#    environment:
-#      - WORKER_ID=worker2
-#    depends_on:
-#      orchestrator:
-#        condition: service_healthy
+  worker2:
+    build: ./Worker
+    environment:
+      - WORKER_ID=worker2
+    depends_on:
+      orchestrator:
+        condition: service_healthy
 #
 #  worker3:
 #    build: ./Worker

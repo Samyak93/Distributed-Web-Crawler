@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import hashlib
 
+WORKER_ID = os.environ.get("WORKER_ID", "undefined")  # default to undefined if not set
+
 def download_file(url, save_dir):
     os.makedirs(save_dir, exist_ok=True)
     local_filename = url.split('/')[-1]
@@ -75,32 +77,100 @@ def crawl_arxiv_list_page(url, save_dir="downloads"):
 
     return results
 
-def main(try_counter = 0):
-    data = requests.get("http://orchestrator:8000/get_urls/worker1")
-    urls = data.json()["urls"]
-    results = []
-    for url in urls:
-        out = crawl_arxiv_list_page(url, save_dir="arxiv_pdfs")
-        try:
-            shutil.rmtree("arxiv_pdfs")
-            print("Cleanup successful!")
-        except Exception as ex:
-            print("Error cleaning up!", str(ex))
-        # Optionally: print out results or send back to server API
-        results.extend(out)
+def crawl_mit_list_page(url, save_dir="downloads"):
+    print(f"Crawling MIT base page: {url}")
 
     try:
-        requests.post(
-            "http://orchestrator:8000/post_results/data",
-            json=results,
-            timeout=30
-        )
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"Failed to fetch MIT base page: {e}")
+        return [{"url": url, "status": f"error: {e}"}]
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    resource_links = []
+
+    # ---------- Step 1: collect all resource pages ----------
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if href.startswith("/courses/") and "/resources/" in href:
+            resource_links.append(urljoin("https://ocw.mit.edu", href))
+
+    resource_links = list(set(resource_links))
+    print(f"Found {len(resource_links)} MIT resource pages")
+
+    # ---------- Step 2: crawl each resource page for actual PDFs ----------
+    pdf_links = []
+
+    for res_url in resource_links:
+        try:
+            res_resp = requests.get(res_url, timeout=30)
+            res_resp.raise_for_status()
+        except Exception as e:
+            print(f"Failed to fetch resource page {res_url}: {e}")
+            continue
+
+        res_soup = BeautifulSoup(res_resp.text, "html.parser")
+        for a in res_soup.find_all("a", href=True, class_="download-file"):
+            href = a["href"]
+            if href.endswith(".pdf"):
+                pdf_links.append(urljoin("https://ocw.mit.edu", href))
+
+    pdf_links = list(set(pdf_links))
+    print(f"Found {len(pdf_links)} MIT PDF files")
+
+    # ---------- Step 3: download PDFs ----------
+    results = []
+    for pdf_url in pdf_links:
+        try:
+            file_path = download_file(pdf_url, save_dir)
+            md5 = compute_md5(file_path)
+            results.append({"url": pdf_url, "file": file_path, "md5": md5, "status": "success"})
+        except Exception as e:
+            results.append({"url": pdf_url, "file": None, "md5": None, "status": f"error: {e}"})
+
+    return results
+
+
+def main(try_counter=0):
+    # Get URLs dynamically based on worker ID
+    try:
+        resp = requests.get(f"http://orchestrator:8000/get_urls/{WORKER_ID}")
+        resp.raise_for_status()
+        urls = resp.json().get("urls", [])
+    except Exception as ex:
+        print("Failed to fetch URLs from orchestrator!", str(ex))
+        return
+
+    results = []
+
+    for url in urls:
+        if WORKER_ID == "worker1":
+            out = crawl_arxiv_list_page(url, save_dir="arxiv_pdfs")
+            cleanup_dir = "arxiv_pdfs"
+        elif WORKER_ID == "worker2":
+            out = crawl_mit_list_page(url, save_dir="mit_pdfs")
+            cleanup_dir = "mit_pdfs"
+        else:
+            print("Unknown WORKER_ID", WORKER_ID)
+            continue
+
+        # Cleanup downloaded files
+        if os.path.exists(cleanup_dir):
+            shutil.rmtree(cleanup_dir)
+            print("Cleanup successful!")
+
+        results.extend(out)
+
+    # POST results back
+    try:
+        requests.post(f"http://orchestrator:8000/post_results/data", json=results, timeout=30)
     except Exception as ex:
         if try_counter < 3:
-            print("Error sending data back to server! Trying again!", str(ex))
+            print("Error sending data back! Retrying...", str(ex))
             main(try_counter + 1)
         else:
-            print("Error sending data back to server! Exiting!", str(ex))
+            print("Failed to send data after retries.", str(ex))
 
 if __name__ == "__main__":
     main()

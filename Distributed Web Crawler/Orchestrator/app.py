@@ -16,7 +16,7 @@ def get_urls(worker_id = 'worker0'):
     elif worker_id == 'worker2':
         return {"urls": MIT_URLS}
     else:
-        return {"error": "Worker not configured!"}
+        return {"error": "Worker not configured!", "urls": []}
 
 @app.post("/post_results/data")
 def post_results(data = Body(...)):
