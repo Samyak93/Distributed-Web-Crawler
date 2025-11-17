@@ -1,19 +1,25 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 
 app = FastAPI()
 
-URLS = [
-    "https://example.com",
-    "https://python.org",
-    "https://fastapi.tiangolo.com",
-    "https://docs.docker.com",
-    "https://github.com"
-]
+ARXIV_URLS = ["https://arxiv.org/search/cs?query=Computer+Network&searchtype=all&abstracts=show&order=-announced_date_first&size=50"]
+MIT_URLS = ["https://ocw.mit.edu/courses/6-829-computer-networks-fall-2002/pages/lecture-notes/"]
 
 @app.get("/")
 def home():
-    return {"I'm up!"}
+    return {"status": "I'm up!"}
 
-@app.get("/get_urls")
-def get_urls():
-    return {"urls": URLS}
+@app.get("/get_urls/{worker_id}")
+def get_urls(worker_id = 'worker0'):
+    if worker_id == 'worker1':
+        return {"urls": ARXIV_URLS}
+    elif worker_id == 'worker2':
+        return {"urls": MIT_URLS}
+    else:
+        return {"error": "Worker not configured!"}
+
+@app.post("/post_results/data")
+def post_results(data = Body(...)):
+    print("\nReceived results:")
+    for item in data:
+        print(item)
