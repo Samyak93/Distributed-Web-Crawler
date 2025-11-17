@@ -1,3 +1,12 @@
+"""
+CSCI-651 Project: Distributed Web Crawler
+
+Implementing a Distributed Web Crawler to crawl different
+websites, download all related files, calculate MD5 hash
+and send it back to the server.
+Uses Docker Containers to host workers.
+"""
+
 import os
 import shutil
 import requests
@@ -8,6 +17,13 @@ import hashlib
 WORKER_ID = os.environ.get("WORKER_ID", "undefined")  # default to undefined if not set
 
 def download_file(url, save_dir):
+    """
+    Method to download the file and save it
+
+    :param url: URL of file to be downloaded
+    :param save_dir: Directory name where to store it
+    :return: Full file path where file has been stored
+    """
     os.makedirs(save_dir, exist_ok=True)
     local_filename = url.split('/')[-1]
     local_path = os.path.join(save_dir, local_filename)
@@ -20,6 +36,12 @@ def download_file(url, save_dir):
     return local_path
 
 def compute_md5(file_path):
+    """
+    Method to compute MD5 of the downloaded file
+
+    :param file_path: Path of downloaded file to calculate its MD5 hash
+    :return: MD5 Hash of the file
+    """
     hash_md5 = hashlib.md5()
     with open(file_path, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
@@ -27,6 +49,13 @@ def compute_md5(file_path):
     return hash_md5.hexdigest()
 
 def crawl_arxiv_list_page(url, save_dir="downloads"):
+    """
+    Method to crawl the arXiv website and download all PDFs
+
+    :param url: URL of the website to crawl
+    :param save_dir: Directory name to download files and store them
+    :return: JSON dictionary of {url, file, md5, status} of all downloaded files
+    """
     print(f"Crawling {url}")
 
     # ---------- FETCH PAGE SAFELY ----------
@@ -78,6 +107,13 @@ def crawl_arxiv_list_page(url, save_dir="downloads"):
     return results
 
 def crawl_mit_list_page(url, save_dir="downloads"):
+    """
+    Method to crawl the MIT website and download all PDFs
+
+    :param url: URL of the website to crawl
+    :param save_dir: Directory name to download files and store them
+    :return: JSON dictionary of {url, file, md5, status} of all downloaded files
+    """
     print(f"Crawling MIT base page: {url}")
 
     try:
@@ -133,6 +169,13 @@ def crawl_mit_list_page(url, save_dir="downloads"):
 
 
 def main(try_counter=0):
+    """
+    Main method to trigger crawling based on worker ids. Retries 3 times
+    on failures.
+
+    :param try_counter: Current attempt of running main function
+    :return: None
+    """
     # Get URLs dynamically based on worker ID
     try:
         resp = requests.get(f"http://orchestrator:8000/get_urls/{WORKER_ID}")

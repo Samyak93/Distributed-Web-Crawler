@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Distributed Web Crawler Documentation &#8212; Distributed Web Crawler  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="distributed-web-crawler-documentation">
+<h1>Distributed Web Crawler Documentation<a class="headerlink" href="#distributed-web-crawler-documentation" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>This documentation covers the Distributed Web Crawler project, including the Orchestrator API and Worker nodes.</p>
+</section>
+<section id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-Orchestrator.app">
+<span id="orchestrator-app"></span><h2>Orchestrator (app)<a class="headerlink" href="#module-Orchestrator.app" title="Link to this heading">¶</a></h2>
+<p>CSCI-651 Project: Distributed Web Crawler</p>
+<p>Implementing a Distributed Web Crawler to crawl different
+websites, download all related files, calculate MD5 hash
+and send it back to the server.
+Uses Docker Container to host the server and MongoDB.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="Orchestrator.app.connect_db">
+<span class="sig-prename descclassname"><span class="pre">Orchestrator.app.</span></span><span class="sig-name descname"><span class="pre">connect_db</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Orchestrator/app.html#connect_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Orchestrator.app.connect_db" title="Link to this definition">¶</a></dt>
+<dd><p>Method to lazily connect to DB, only 1 connection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DB connection to the collection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Orchestrator.app.get_urls">
+<span class="sig-prename descclassname"><span class="pre">Orchestrator.app.</span></span><span class="sig-name descname"><span class="pre">get_urls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">worker_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'worker0'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Orchestrator/app.html#get_urls"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Orchestrator.app.get_urls" title="Link to this definition">¶</a></dt>
+<dd><p>Method to distribute URLs to workers based on the worker ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>worker_id</strong> – ID of the worker requesting the URLs to crawl.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of URLs for current worker to crawl.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Orchestrator.app.home">
+<span class="sig-prename descclassname"><span class="pre">Orchestrator.app.</span></span><span class="sig-name descname"><span class="pre">home</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Orchestrator/app.html#home"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Orchestrator.app.home" title="Link to this definition">¶</a></dt>
+<dd><p>Basic method to check if server is up during healthcheck</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON response indicating server is live.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Orchestrator.app.post_results">
+<span class="sig-prename descclassname"><span class="pre">Orchestrator.app.</span></span><span class="sig-name descname"><span class="pre">post_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Body(PydanticUndefined)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Orchestrator/app.html#post_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Orchestrator.app.post_results" title="Link to this definition">¶</a></dt>
+<dd><p>Method to receive results from worker and post it into MongoDB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> – JSON dictionary of {url, file, md5, status} of all downloaded files received from workers.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Worker.worker">
+<span id="worker-worker"></span><h2>Worker (worker)<a class="headerlink" href="#module-Worker.worker" title="Link to this heading">¶</a></h2>
+<p>CSCI-651 Project: Distributed Web Crawler</p>
+<p>Implementing a Distributed Web Crawler to crawl different
+websites, download all related files, calculate MD5 hash
+and send it back to the server.
+Uses Docker Containers to host workers.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="Worker.worker.compute_md5">
+<span class="sig-prename descclassname"><span class="pre">Worker.worker.</span></span><span class="sig-name descname"><span class="pre">compute_md5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Worker/worker.html#compute_md5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Worker.worker.compute_md5" title="Link to this definition">¶</a></dt>
+<dd><p>Method to compute MD5 of the downloaded file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_path</strong> – Path of downloaded file to calculate its MD5 hash</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>MD5 Hash of the file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Worker.worker.crawl_arxiv_list_page">
+<span class="sig-prename descclassname"><span class="pre">Worker.worker.</span></span><span class="sig-name descname"><span class="pre">crawl_arxiv_list_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'downloads'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Worker/worker.html#crawl_arxiv_list_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Worker.worker.crawl_arxiv_list_page" title="Link to this definition">¶</a></dt>
+<dd><p>Method to crawl the arXiv website and download all PDFs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> – URL of the website to crawl</p></li>
+<li><p><strong>save_dir</strong> – Directory name to download files and store them</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON dictionary of {url, file, md5, status} of all downloaded files</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Worker.worker.crawl_mit_list_page">
+<span class="sig-prename descclassname"><span class="pre">Worker.worker.</span></span><span class="sig-name descname"><span class="pre">crawl_mit_list_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'downloads'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Worker/worker.html#crawl_mit_list_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Worker.worker.crawl_mit_list_page" title="Link to this definition">¶</a></dt>
+<dd><p>Method to crawl the MIT website and download all PDFs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> – URL of the website to crawl</p></li>
+<li><p><strong>save_dir</strong> – Directory name to download files and store them</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON dictionary of {url, file, md5, status} of all downloaded files</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Worker.worker.download_file">
+<span class="sig-prename descclassname"><span class="pre">Worker.worker.</span></span><span class="sig-name descname"><span class="pre">download_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Worker/worker.html#download_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Worker.worker.download_file" title="Link to this definition">¶</a></dt>
+<dd><p>Method to download the file and save it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> – URL of file to be downloaded</p></li>
+<li><p><strong>save_dir</strong> – Directory name where to store it</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Full file path where file has been stored</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Worker.worker.main">
+<span class="sig-prename descclassname"><span class="pre">Worker.worker.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">try_counter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Worker/worker.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Worker.worker.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main method to trigger crawling based on worker ids. Retries 3 times
+on failures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>try_counter</strong> – Current attempt of running main function</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Distributed Web Crawler</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Samyak Shah, Uzair Islam, Nimisha Mathew.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
