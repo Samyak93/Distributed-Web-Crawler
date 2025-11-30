@@ -52,35 +52,47 @@ def compute_md5(file_path):
     return hash_md5.hexdigest()
 
 def _get_user_bookmarks(login_response, auth_kw):
+    """
+    Method to get user bookmarks
+    :param login_response: Response from login request
+    :param auth_kw: Auth keyword from login response cookies
+    :return: Response from bookmark request
+    """
+    # Obtains the authorization token from the response of the login
     auth_token = dict()
     for k, v in login_response.cookies.items():
         if auth_kw in k:
             auth_token = {k: v}
 
-    try:
-        time.sleep(DOWNLOAD_DELAY)
-        response = requests.get(
-            config.bookmark_url, timeout=30, cookies=auth_token, headers=config.bookmark_headers)
-        response.raise_for_status()
-        print(f"Status Code: {response.status_code}")
-    except requests.exceptions.HTTPError as err:
-        print(f"HTTP error occurred: {err}")
-    except Exception as err:
-        print(f"An unexpected error occurred: {err}")
+    time.sleep(DOWNLOAD_DELAY)
+
+    # Sends a request for the user's saved articles
+    response = requests.get(
+        config.bookmark_url, timeout=30, cookies=auth_token, headers=config.bookmark_headers)
+    response.raise_for_status()
+    print(f"Status Code: {response.status_code}")
 
     return response
 
 def _extract_article_content(article_response):
+    """
+    Method to extract article content
+    :param article_response: Response from article request
+    :return: Contents of articles
+    """
+    # Gets only text content from the article page to hash later
     article_content_css = '.post__content__section'
     article_soup = BeautifulSoup(article_response.text, "html.parser")
     article_text_selectors = article_soup.select(article_content_css)
 
+    # Loops over the selectors for article content and retrieves their text
     all_article_text = []
 
     for sel in article_text_selectors:
         txt = sel.get_text(strip=True)
         all_article_text.append(txt)
 
+    # Concatenates all the text together into the final article
     article_content = '\n\n'.join(all_article_text)
 
     return article_content
@@ -96,10 +108,12 @@ def download_article_content(url, save_dir):
     os.makedirs(save_dir, exist_ok=True)
     local_filename = [u for u in url.split('/') if u][-1]
     local_path = os.path.join(save_dir, f'{local_filename}.txt')
+    # Sends request for article webpage
     with requests.get(url, stream=True, timeout=30, headers=config.article_headers) as r:
         r.raise_for_status()
         time.sleep(DOWNLOAD_DELAY)
 
+        # Saves only the text content of the article in the local directory for hashing
         with open(local_path, 'wb') as f:
             chunk = _extract_article_content(r).encode('utf-8')
             if chunk:
@@ -227,17 +241,31 @@ def crawl_mit_list_page(url, save_dir="downloads"):
     return results
 
 def crawl_quanta_page(url, save_dir="downloads"):
+    """
+    Method to crawl the Quanta website and download all articles
+    :param url: URL of the website to crawl
+    :param save_dir: Directory name to download files and store them
+    :return: JSON dictionary of {url, file, md5, status} of all downloaded files
+    """
+
+    # Sends a post request for logging into quanta magazine website
     try:
         time.sleep(DOWNLOAD_DELAY)
         response = requests.post(url, timeout=30, headers=config.login_headers, data=config.login_body)
         response.raise_for_status()
         print(f"Status Code: {response.status_code}")
-    except requests.exceptions.HTTPError as err:
-        print(f"HTTP error occurred: {err}")
-    except Exception as err:
-        print(f"An unexpected error occurred: {err}")
+    except Exception as e:
+        print(f"Failed to login to Quanta page: {e}")
+        return [{"url": url, "status": f"error: {e}"}]
 
-    bookmarks_response = _get_user_bookmarks(response, 'logged_in')
+    # Gets bookmarks page for this user
+    try:
+        bookmarks_response = _get_user_bookmarks(response, 'logged_in')
+    except Exception as e:
+        print(f"Failed to bookmarks for user: {e}")
+        return [{"url": url, "status": f"error: {e}"}]
+
+    # Parses the bookmarks page in order to obtain all article URLs
     soup = BeautifulSoup(bookmarks_response.text, 'html.parser')
     saved_articles_css = '.card__content > a[data-toggle-hover="card"]'
     hrefs_selectors = soup.select(saved_articles_css)
@@ -248,11 +276,9 @@ def crawl_quanta_page(url, save_dir="downloads"):
         if url:
             saved_article_urls.append(url)
 
-    print(
-        f"Downloading the following {len(saved_article_urls)} bookmarked articles for user {config.username}:")
-    for url in saved_article_urls:
-        print(f"- {url}")
+    print(f"Downloading the following {len(saved_article_urls)} bookmarked articles for user {config.username}:")
 
+    # Sends requests to each article URL to download its text content and then hash it
     results = []
 
     for article_url in saved_article_urls:
