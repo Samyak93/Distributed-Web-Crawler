@@ -38,14 +38,14 @@ services:
     depends_on:
       orchestrator:
         condition: service_healthy
-#
-#  worker3:
-#    build: ./Worker
-#    environment:
-#      - WORKER_ID=worker3
-#    depends_on:
-#      orchestrator:
-#        condition: service_healthy
+
+  worker3:
+    build: ./Worker
+    environment:
+      - WORKER_ID=worker3
+    depends_on:
+      orchestrator:
+        condition: service_healthy
 
 volumes:
   mongo_data:

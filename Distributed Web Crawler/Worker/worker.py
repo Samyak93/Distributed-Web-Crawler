@@ -10,11 +10,14 @@ Uses Docker Containers to host workers.
 import os
 import shutil
 import requests
+import time
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import hashlib
+import config
 
 WORKER_ID = os.environ.get("WORKER_ID", "undefined")  # default to undefined if not set
+DOWNLOAD_DELAY = 5
 
 def download_file(url, save_dir):
     """
@@ -47,6 +50,62 @@ def compute_md5(file_path):
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
+
+def _get_user_bookmarks(login_response, auth_kw):
+    auth_token = dict()
+    for k, v in login_response.cookies.items():
+        if auth_kw in k:
+            auth_token = {k: v}
+
+    try:
+        time.sleep(DOWNLOAD_DELAY)
+        response = requests.get(
+            config.bookmark_url, timeout=30, cookies=auth_token, headers=config.bookmark_headers)
+        response.raise_for_status()
+        print(f"Status Code: {response.status_code}")
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+    except Exception as err:
+        print(f"An unexpected error occurred: {err}")
+
+    return response
+
+def _extract_article_content(article_response):
+    article_content_css = '.post__content__section'
+    article_soup = BeautifulSoup(article_response.text, "html.parser")
+    article_text_selectors = article_soup.select(article_content_css)
+
+    all_article_text = []
+
+    for sel in article_text_selectors:
+        txt = sel.get_text(strip=True)
+        all_article_text.append(txt)
+
+    article_content = '\n\n'.join(all_article_text)
+
+    return article_content
+
+def download_article_content(url, save_dir):
+    """
+    Method to download the file and save it
+
+    :param url: URL of file to be downloaded
+    :param save_dir: Directory name where to store it
+    :return: Full file path where file has been stored
+    """
+    os.makedirs(save_dir, exist_ok=True)
+    local_filename = [u for u in url.split('/') if u][-1]
+    local_path = os.path.join(save_dir, f'{local_filename}.txt')
+    with requests.get(url, stream=True, timeout=30, headers=config.article_headers) as r:
+        r.raise_for_status()
+        time.sleep(DOWNLOAD_DELAY)
+
+        with open(local_path, 'wb') as f:
+            chunk = _extract_article_content(r).encode('utf-8')
+            if chunk:
+                f.write(chunk)
+
+    return local_path
 
 def crawl_arxiv_list_page(url, save_dir="downloads"):
     """
@@ -167,6 +226,56 @@ def crawl_mit_list_page(url, save_dir="downloads"):
 
     return results
 
+def crawl_quanta_page(url, save_dir="downloads"):
+    try:
+        time.sleep(DOWNLOAD_DELAY)
+        response = requests.post(url, timeout=30, headers=config.login_headers, data=config.login_body)
+        response.raise_for_status()
+        print(f"Status Code: {response.status_code}")
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+    except Exception as err:
+        print(f"An unexpected error occurred: {err}")
+
+    bookmarks_response = _get_user_bookmarks(response, 'logged_in')
+    soup = BeautifulSoup(bookmarks_response.text, 'html.parser')
+    saved_articles_css = '.card__content > a[data-toggle-hover="card"]'
+    hrefs_selectors = soup.select(saved_articles_css)
+
+    saved_article_urls = []
+    for link_tag in hrefs_selectors:
+        url = link_tag.get('href')
+        if url:
+            saved_article_urls.append(url)
+
+    print(
+        f"Downloading the following {len(saved_article_urls)} bookmarked articles for user {config.username}:")
+    for url in saved_article_urls:
+        print(f"- {url}")
+
+    results = []
+
+    for article_url in saved_article_urls:
+        try:
+            file_path = download_article_content(
+                article_url, save_dir)
+            md5 = compute_md5(file_path)
+
+            results.append({
+                "url": article_url,
+                "file": file_path,
+                "md5": md5,
+                "status": "success"
+            })
+        except Exception as e:
+            results.append({
+                "url": article_url,
+                "file": None,
+                "md5": None,
+                "status": f"error: {e}"
+            })
+
+    return results
 
 def main(try_counter=0):
     """
@@ -194,6 +303,9 @@ def main(try_counter=0):
         elif WORKER_ID == "worker2":
             out = crawl_mit_list_page(url, save_dir="mit_pdfs")
             cleanup_dir = "mit_pdfs"
+        elif WORKER_ID == "worker3":
+            out = crawl_quanta_page(url, save_dir="quanta_pdfs")
+            cleanup_dir = "quanta_pdfs"
         else:
             print("Unknown WORKER_ID", WORKER_ID)
             continue

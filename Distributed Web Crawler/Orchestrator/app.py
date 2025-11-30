@@ -17,6 +17,7 @@ collection = None
 
 ARXIV_URLS = ["https://arxiv.org/search/cs?query=Computer+Network&searchtype=all&abstracts=show&order=-announced_date_first&size=50"]
 MIT_URLS = ["https://ocw.mit.edu/courses/6-829-computer-networks-fall-2002/pages/lecture-notes/"]
+QUANTA_URLS = ["https://www.quantamagazine.org/wp-admin/admin-ajax.php"]
 
 def connect_db():
     """
@@ -53,6 +54,8 @@ def get_urls(worker_id='worker0'):
         return {"urls": ARXIV_URLS}
     elif worker_id == 'worker2':
         return {"urls": MIT_URLS}
+    elif worker_id == 'worker3':
+        return {"urls": QUANTA_URLS}
     else:
         return {"error": "Worker not configured!"}
 
