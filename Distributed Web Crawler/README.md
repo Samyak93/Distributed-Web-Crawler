@@ -81,7 +81,7 @@ NOTE: Add Login Credentials for a Quanta Magazine profile in the config.py file 
   2. Workers:
      - Run as Docker containers.
      - Crawl URLs using the request library.
-     - Uses beautiful soup to parse the HTML.
+     - Uses beautifulsoup to parse the HTML.
      - Logs into websites and fetches user-specific information.
      - Compute MD5 hashes of HTML pages or PDFs.
      - Send results back to the orchestrator.
