@@ -2,7 +2,7 @@
   # Distributed Web Crawler
 
   This project implements a **Distributed Web Crawler** for **website content integrity verification**.
-  It is built using **Python**, **FastAPI**, **aiohttp**, and **Docker**, with results stored in **MongoDB**.
+  It is built using **Python**, **FastAPI**, and **Docker**, with results stored in **MongoDB**.
   The system uses a **coordinator–worker architecture**, allowing multiple crawler nodes to fetch URLs in parallel, compute MD5 hashes of HTML/PDF resources, and report results to a central orchestrator.
 
   ---
@@ -10,13 +10,15 @@
   ## Project Structure
 
       Orchestrator/
-      └── app.py          # FastAPI orchestrator assigning URLs and collecting results
+      ├── app.py            # FastAPI orchestrator assigning URLs and collecting results
+      └── requirements.txt  # Python dependencies for orchestrator
       Worker/
-      └── worker.py       # Async web crawler computing MD5 hashes
-      docker-compose.yml  # Docker orchestration for orchestrator, workers, and MongoDB
-      docs/               # Sphinx-generated documentation
-      requirements.txt    # Python dependencies for orchestrator and workers
-      README.md           # This documentation
+      ├── worker.py         # Async web crawler computing MD5 hashes
+      ├── config.py         # Configuration values for workers
+      └── requirements.txt  # Python dependencies for workers
+      docker-compose.yml    # Docker orchestration for orchestrator, workers, and MongoDB
+      docs/                 # Sphinx-generated documentation
+      README.md             # This documentation
 
   ---
 
@@ -29,7 +31,7 @@
     - fastapi
     - uvicorn
     - pymongo
-    - aiohttp
+    - requests
     - beautifulsoup4
 
   Install dependencies:
@@ -44,6 +46,8 @@
   ---
 
   ## How to Run
+
+NOTE: Add Login Credentials for a Quanta Magazine profile in the config.py file if needed. Currently, an account is already provided. Create an account [here](https://www.quantamagazine.org/) to test with your own custom bookmarks.
 
   ### Start the System
 
@@ -76,7 +80,9 @@
 
   2. Workers:
      - Run as Docker containers.
-     - Crawl URLs asynchronously using aiohttp + asyncio.
+     - Crawl URLs asynchronously using the request library.
+     - Uses beautiful soup to parse the HTML.
+     - Logs into websites and fetches user-specific information.
      - Compute MD5 hashes of HTML pages or PDFs.
      - Send results back to the orchestrator.
 
@@ -89,6 +95,7 @@
   - REST API Communication: Workers post results to the orchestrator
   - Dockerized Deployment: Orchestrator, workers, and MongoDB run in containers
   - Scalability: Add more workers to increase crawling capacity
+  - User authentication: Workers can log into websites using user credentials
 
   ---
 
@@ -96,6 +103,7 @@
 
   - Worker crawling Arxiv PDFs – 50 links fetched.
   - Worker crawling MIT lecture notes – 21 PDFs and pages.
+  - Worker crawling Quanta Magazine - 15 articles fetched.
   - Orchestrator received 71 total results.
   - MongoDB stores results in crawler_db.results with MD5 hashes:
 
@@ -114,6 +122,7 @@
   The Distributed Web Crawler provides:
 
   - Parallel crawling using Dockerized worker nodes
+  - Login capabilities by using the authentication token
   - Content integrity verification with MD5 hashes
   - REST API orchestration and inter-container communication
   - Persistent storage in MongoDB for historical monitoring

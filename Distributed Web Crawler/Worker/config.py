@@ -1,7 +1,7 @@
 from urllib.parse import quote
 
 username = 'nimisstrash@gmail.com'
-password = 'networksproject'
+password = 'networksproject'    # Ideally a password would not be hardcoded here
 
 encoded_username = quote(username)
 encoded_password = quote(password)
