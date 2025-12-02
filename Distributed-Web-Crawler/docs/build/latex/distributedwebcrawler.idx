@@ -1,0 +1,15 @@
+\indexentry{module@\spxentry{module}!app@\spxentry{app}|hyperpage}{2}
+\indexentry{app@\spxentry{app}!module@\spxentry{module}|hyperpage}{2}
+\indexentry{connect\_db() (in module app)@\spxentry{connect\_db()}\spxextra{in module app}|hyperpage}{2}
+\indexentry{get\_urls() (in module app)@\spxentry{get\_urls()}\spxextra{in module app}|hyperpage}{2}
+\indexentry{home() (in module app)@\spxentry{home()}\spxextra{in module app}|hyperpage}{2}
+\indexentry{post\_results() (in module app)@\spxentry{post\_results()}\spxextra{in module app}|hyperpage}{2}
+\indexentry{module@\spxentry{module}!worker@\spxentry{worker}|hyperpage}{3}
+\indexentry{worker@\spxentry{worker}!module@\spxentry{module}|hyperpage}{3}
+\indexentry{compute\_md5() (in module worker)@\spxentry{compute\_md5()}\spxextra{in module worker}|hyperpage}{3}
+\indexentry{crawl\_arxiv\_list\_page() (in module worker)@\spxentry{crawl\_arxiv\_list\_page()}\spxextra{in module worker}|hyperpage}{3}
+\indexentry{crawl\_mit\_list\_page() (in module worker)@\spxentry{crawl\_mit\_list\_page()}\spxextra{in module worker}|hyperpage}{3}
+\indexentry{crawl\_quanta\_page() (in module worker)@\spxentry{crawl\_quanta\_page()}\spxextra{in module worker}|hyperpage}{3}
+\indexentry{download\_article\_content() (in module worker)@\spxentry{download\_article\_content()}\spxextra{in module worker}|hyperpage}{3}
+\indexentry{download\_file() (in module worker)@\spxentry{download\_file()}\spxextra{in module worker}|hyperpage}{4}
+\indexentry{main() (in module worker)@\spxentry{main()}\spxextra{in module worker}|hyperpage}{4}
